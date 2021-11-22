@@ -1,17 +1,20 @@
 # Dependencies
 
-# Python
+## Python
+import json
+from os import read
 from uuid import UUID
 from datetime import date, datetime
 from typing import Optional, List
 
-# Pydantic
+## Pydantic
 from pydantic import BaseModel, Field
 from pydantic import EmailStr
 
-# FastAPI
+## FastAPI
 from fastapi import FastAPI
 from fastapi import status
+from fastapi import Body
 
 app = FastAPI()
 
@@ -40,6 +43,9 @@ class User(UserBase):
         max_length = 50
         )
     birth_date: Optional[date] = Field(default = None)
+    
+class RegisterUser(User, UserLogin):
+    pass
 
 class Tweet(BaseModel):
     tweet_id: UUID = Field(...)
@@ -64,8 +70,32 @@ class Tweet(BaseModel):
     response_model = User,
     status_code = status.HTTP_201_CREATED
 )
-def signup():
-    pass
+def signup(user: RegisterUser = Body(...)):
+    """
+    Signup
+
+    This path operation register a user in the app
+    
+    Parameters:
+        - Request body parameter:
+            - user: User
+    
+    Returns:
+        - user_id: UUID
+        - email: EmailStr
+        - first_name: str
+        - last_name: str
+        - birth_date: date
+    """
+    with open('users.json', 'r+', encoding = 'utf-8') as f:
+        results = json.load(f)
+        user_dict = user.dict()
+        user_dict['user_id'] = str(user_dict['user_id'])
+        user_dict['birth_date'] = str(user_dict['birth_date'])
+        results.append(user_dict)
+        f.seek(0)
+        json.dump(results, f)
+        return user
 
 ### Login a user
 @app.post(
