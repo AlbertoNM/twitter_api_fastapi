@@ -2,7 +2,6 @@
 
 ## Python
 import json
-from os import read
 from uuid import UUID
 from datetime import date, datetime
 from typing import Optional, List
@@ -73,19 +72,20 @@ class Tweet(BaseModel):
 def signup(user: RegisterUser = Body(...)):
     """
     Signup
-
+    ======
+    ---
     This path operation register a user in the app
     
     Parameters:
-        - Request body parameter:
-            - user: User
+    * Request body parameter:
+        * user: User
     
     Returns:
-        - user_id: UUID
-        - email: EmailStr
-        - first_name: str
-        - last_name: str
-        - birth_date: date
+    * user_id: UUID
+    * email: EmailStr
+    * first_name: str
+    * last_name: str
+    * birth_date: date
     """
     with open('users.json', 'r+', encoding = 'utf-8') as f:
         results = json.load(f)
@@ -120,17 +120,20 @@ def login():
 )
 def show__all_users():
     """
+    Showing users
+    =============
+    ---
     This path operation shows all users in the app
 
     Parameters:
-        -
+    *
 
     Returns a json list with all users in the app, with the following keys:
-        - user_id: UUID
-        - email: Emailstr
-        - first_name: str
-        - last_name: str
-        - birth_date: date
+    * user_id: UUID
+    * email: Emailstr
+    * first_name: str
+    * last_name: str
+    * birth_date: date
     """
     with open('users.json', 'r', encoding = 'utf-8') as f:
         results = json.load(f)
@@ -176,11 +179,29 @@ def update_a_user():
     path = '/',
     summary = 'Show all tweets',
     tags = ['Tweets'],
-    # response_model = List[Tweet],
+    response_model = List[Tweet],
     status_code = status.HTTP_200_OK
 )
 def home():
-    return {'Twitter api': 'Working'}
+    """
+    Home
+    ====
+    ---
+    This path operation shows all tweets in the app
+
+    Parameters:
+    *
+
+    Returns a json list with all tweets in the app, with the following keys:
+    * tweet_id: UUID
+    * content: str
+    * created_at: datetime
+    * update_at: datetime
+    * by: User
+    """
+    with open('tweets.json', 'r', encoding = 'utf-8') as f:
+        results = json.load(f)
+        return results
 
 ### Post a tweet
 @app.post(
@@ -188,10 +209,38 @@ def home():
     summary = 'Post a tweet',
     tags = ['Tweets'],
     response_model = Tweet,
-    status_code = status.HTTP_200_OK
+    status_code = status.HTTP_201_CREATED
 )
-def post():
-    pass
+def post(tweet: Tweet = Body(...)):
+    """
+    Post a Tweet
+    ============
+    ---
+    This path operation post a tweet in the app
+    Parameters:
+    * Request body parameter:
+        * tweet: Tweet
+    
+    Returns:
+    * tweet_id: UUID
+    * content: str
+    * created_at: datetime
+    * update_at: datetime
+    * by: User
+    """
+    with open('tweets.json', 'r+', encoding = 'utf-8') as f:
+        results = json.load(f)
+        tweet_dict = tweet.dict()
+        tweet_dict['tweet_id'] = str(tweet_dict['tweet_id'])
+        tweet_dict['created_at'] = str(tweet_dict['created_at'])
+        if tweet_dict['update_at']:
+            tweet_dict['update_at'] = str(tweet_dict['update_at'])
+        tweet_dict['by']['user_id'] = str(tweet_dict['by']['user_id'])
+        tweet_dict['by']['birth_date'] = str(tweet_dict['by']['birth_date'])
+        results.append(tweet_dict)
+        f.seek(0)
+        json.dump(results, f)
+        return tweet
 
 ### Show a tweet
 @app.get(
