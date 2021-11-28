@@ -3,7 +3,7 @@ Twitter API clone made for learning purposes. The project uses FastAPI classes a
 
 The interactive documentation of the API with Swagger UI is available at: `{localhost}/docs`.
 
-##Content
+## Content
 * main.py
 * The requirements
 * Script in bash (use a bash shell to run the script)
